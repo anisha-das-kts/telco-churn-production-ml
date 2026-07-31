@@ -1,0 +1,28 @@
+{
+    "benchmark_timestamp_utc": "2026-07-31T15:40:10.491658+00:00",
+    "api_url": "http://127.0.0.1:8000/predict",
+    "warmup_requests": 5,
+    "measured_requests": 100,
+    "successful_requests": 100,
+    "failed_requests": 0,
+    "error_rate_percent": 0.0,
+    "total_duration_seconds": 4.544634199999564,
+    "average_latency_ms": 45.399459999998726,
+    "median_latency_ms": 44.67559999966397,
+    "p95_latency_ms": 55.54913499963732,
+    "minimum_latency_ms": 34.77959999963787,
+    "maximum_latency_ms": 87.34199999980774,
+    "throughput_requests_per_second": 22.003971188706366,
+    "latency_target_ms": 200.0,
+    "meets_p95_latency_target": true,
+    "sample_response": {
+        "request_id": "065d2662-b4f9-44a4-b9f7-8ba89f90dd73",
+        "prediction": 1,
+        "churn_label": "Likely to churn",
+        "churn_probability": 0.93983,
+        "risk_level": "high",
+        "model_name": "Logistic Regression",
+        "model_version": "1.0.0",
+        "latency_ms": 34.788
+    }
+}

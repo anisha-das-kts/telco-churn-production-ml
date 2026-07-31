@@ -1,0 +1,39 @@
+# Python virtual environments
+.venv/
+venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editors and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.env
+
+# Development model artifacts
+models/baseline/*.joblib
+models/candidate/*.joblib
+
+# Keep the deployed production model
+!models/production/model.joblib
+
+# Runtime logs and ingestion state
+artifacts/logs/*.log
+artifacts/logs/*.jsonl
+artifacts/logs/ingestion_manifest.json
+artifacts/logs/rejected_rows/
+
+# Generated datasets
+data/incoming/*.csv
+data/processed/*.csv
+data/monitoring/*.csv
+
+# Temporary files
+*.tmp

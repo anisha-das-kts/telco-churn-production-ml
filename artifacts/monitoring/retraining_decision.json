@@ -1,0 +1,27 @@
+{
+    "retrain_required": true,
+    "recommended_action": "START_RETRAINING_PIPELINE",
+    "signals": {
+        "scheduled_signal": false,
+        "performance_signal": false,
+        "drift_signal": true
+    },
+    "reasons": [
+        "Numerical feature drift exceeded the configured threshold"
+    ],
+    "critical_issues": [],
+    "decision_timestamp_utc": "2026-07-31T17:00:16.226787+00:00",
+    "input_signals": {
+        "days_since_last_training": 10,
+        "new_labeled_rows": 100,
+        "recent_auc": 0.84,
+        "reference_auc": 0.8507377275234419,
+        "maximum_z_shift": 1.1039820684555643
+    },
+    "thresholds": {
+        "retraining_interval_days": 30,
+        "minimum_new_labeled_rows": 500,
+        "auc_drop_threshold": 0.05,
+        "drift_threshold": 0.5
+    }
+}

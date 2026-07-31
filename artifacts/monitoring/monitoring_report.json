@@ -1,0 +1,112 @@
+{
+    "report_timestamp_utc": "2026-07-31T15:47:27.238136+00:00",
+    "status": "WARNING",
+    "reference_data_path": "C:\\Users\\Anisha Das\\Documents\\telco-churn-production-ml\\data\\processed\\training_data.csv",
+    "recent_data_path": "C:\\Users\\Anisha Das\\Documents\\telco-churn-production-ml\\data\\monitoring\\recent_customer_batch.csv",
+    "reference_rows": 7043,
+    "recent_rows": 500,
+    "thresholds": {
+        "maximum_missing_rate": 0.05,
+        "numerical_z_shift_threshold": 0.5
+    },
+    "data_quality": {
+        "row_count": 500,
+        "missing_columns": [],
+        "missing_rates": {
+            "gender": 0.0,
+            "SeniorCitizen": 0.0,
+            "Partner": 0.0,
+            "Dependents": 0.0,
+            "tenure": 0.0,
+            "PhoneService": 0.0,
+            "MultipleLines": 0.0,
+            "InternetService": 0.0,
+            "OnlineSecurity": 0.0,
+            "OnlineBackup": 0.0,
+            "DeviceProtection": 0.0,
+            "TechSupport": 0.0,
+            "StreamingTV": 0.0,
+            "StreamingMovies": 0.0,
+            "Contract": 0.0,
+            "PaperlessBilling": 0.0,
+            "PaymentMethod": 0.0,
+            "MonthlyCharges": 0.08,
+            "TotalCharges": 0.0
+        },
+        "negative_tenure": 0,
+        "negative_monthly_charges": 0,
+        "negative_total_charges": 0
+    },
+    "numerical_drift": {
+        "tenure": {
+            "reference_mean": 32.37114865824223,
+            "reference_std": 24.55773742286344,
+            "recent_mean": 31.942,
+            "recent_std": 24.823106896599388,
+            "z_shift": 0.017475089453586466,
+            "threshold": 0.5,
+            "drift_detected": false
+        },
+        "MonthlyCharges": {
+            "reference_mean": 64.76169246059918,
+            "reference_std": 30.087910854936975,
+            "recent_mean": 97.97820652173912,
+            "recent_std": 44.263447376877565,
+            "z_shift": 1.1039820684555643,
+            "threshold": 0.5,
+            "drift_detected": true
+        },
+        "TotalCharges": {
+            "reference_mean": 2279.7343035638223,
+            "reference_std": 2266.6335386271107,
+            "recent_mean": 2251.8765,
+            "recent_std": 2265.788655515503,
+            "z_shift": 0.012290387082464072,
+            "threshold": 0.5,
+            "drift_detected": false
+        },
+        "avg_monthly_spend": {
+            "reference_mean": 64.69821757364208,
+            "reference_std": 30.26852047607629,
+            "recent_mean": 65.5768337029859,
+            "recent_std": 29.855788948260095,
+            "z_shift": 0.029027389364414232,
+            "threshold": 0.5,
+            "drift_detected": false
+        },
+        "service_count": {
+            "reference_mean": 3.3629135311656966,
+            "reference_std": 2.0618848568494506,
+            "recent_mean": 3.324,
+            "recent_std": 2.0107272316254137,
+            "z_shift": 0.01887279546014825,
+            "threshold": 0.5,
+            "drift_detected": false
+        },
+        "security_support_count": {
+            "reference_mean": 0.9207723981257987,
+            "reference_std": 1.0216866810859477,
+            "recent_mean": 0.956,
+            "recent_std": 1.0188542584687958,
+            "z_shift": 0.034479848398099845,
+            "threshold": 0.5,
+            "drift_detected": false
+        },
+        "charges_per_service": {
+            "reference_mean": 22.50997229603186,
+            "reference_std": 11.575396627098518,
+            "recent_mean": 34.39078513198758,
+            "recent_std": 18.311414968936898,
+            "z_shift": 1.0263849454749745,
+            "threshold": 0.5,
+            "drift_detected": true
+        }
+    },
+    "maximum_z_shift": 1.1039820684555643,
+    "warnings": [
+        "QUALITY: MonthlyCharges missing rate 8.00% exceeds 5.00%",
+        "DRIFT: MonthlyCharges mean shifted by 1.104 reference standard deviations",
+        "DRIFT: charges_per_service mean shifted by 1.026 reference standard deviations"
+    ],
+    "critical_issues": []
+}

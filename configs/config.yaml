@@ -1,0 +1,34 @@
+project:
+  name: telco-churn-production-ml
+  random_state: 42
+  model_version: "1.0.0"
+
+data:
+  raw_path: data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
+  incoming_path: data/incoming
+  processed_path: data/processed/training_data.csv
+  target_column: Churn
+  id_column: customerID
+
+split:
+  train_size: 0.70
+  validation_size: 0.15
+  test_size: 0.15
+
+promotion:
+  minimum_auc: 0.80
+  minimum_auc_improvement: 0.00
+  minimum_recall: 0.70
+
+serving:
+  host: 0.0.0.0
+  port: 8000
+  latency_target_ms: 200
+
+monitoring:
+  maximum_missing_rate: 0.05
+  numerical_z_shift_threshold: 0.5
+  auc_drop_threshold: 0.05
+  drift_threshold: 0.20
+  retraining_interval_days: 30
+  minimum_new_labeled_rows: 500
