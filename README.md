@@ -608,4 +608,4 @@ local environment because Docker Desktop was unavailable.
 
 ## Repository
 
-GitHub repository: **Add repository link after publishing**
+GitHub repository: [telco-churn-production-ml](https://github.com/anisha-das-kts/telco-churn-production-ml)
