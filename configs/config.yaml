@@ -19,6 +19,8 @@ promotion:
   minimum_auc: 0.80
   minimum_auc_improvement: 0.00
   minimum_recall: 0.70
+  maximum_p95_latency_ms: 200.0
+  maximum_error_rate_percent: 1.0
 
 serving:
   host: 0.0.0.0
