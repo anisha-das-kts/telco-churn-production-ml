@@ -11,6 +11,9 @@ import joblib
 from fastapi import FastAPI, HTTPException
 
 from src.features.build_features import build_features
+from src.registry.model_registry import (
+    get_champion_model_path,
+)
 from src.serving.schemas import (
     CustomerPredictionRequest,
     PredictionResponse,
@@ -19,11 +22,10 @@ from src.serving.schemas import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-MODEL_PATH = (
+REGISTRY_ROOT = (
     PROJECT_ROOT
     / "models"
-    / "production"
-    / "model.joblib"
+    / "registry"
 )
 
 PREDICTION_LOG_PATH = (
@@ -45,15 +47,21 @@ logger = logging.getLogger(__name__)
 
 
 def load_model_artifact() -> dict:
-    """Load the promoted production model."""
+    """Load the verified champion model from the registry."""
 
-    if not MODEL_PATH.exists():
-        raise RuntimeError(
-            f"Production model not found: {MODEL_PATH}. "
-            "Run python -m src.training.train first."
+    try:
+        model_path = get_champion_model_path(
+            REGISTRY_ROOT
         )
+    except (FileNotFoundError, ValueError) as error:
+        raise RuntimeError(
+            "A valid champion model could not be "
+            "loaded from the model registry. Run "
+            "`python -m scripts.initialize_model_registry` "
+            "first."
+        ) from error
 
-    artifact = joblib.load(MODEL_PATH)
+    artifact = joblib.load(model_path)
 
     required_keys = {
         "pipeline",
@@ -67,9 +75,16 @@ def load_model_artifact() -> dict:
 
     if missing_keys:
         raise RuntimeError(
-            f"Model artifact is missing keys: "
+            "Champion model artifact is missing keys: "
             f"{sorted(missing_keys)}"
         )
+
+    logger.info(
+        "Loaded champion model %s version %s from %s",
+        artifact["model_name"],
+        artifact["model_version"],
+        model_path,
+    )
 
     return artifact
 

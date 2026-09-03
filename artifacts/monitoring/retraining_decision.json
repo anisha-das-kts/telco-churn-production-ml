@@ -10,7 +10,7 @@
         "Numerical feature drift exceeded the configured threshold"
     ],
     "critical_issues": [],
-    "decision_timestamp_utc": "2026-07-31T17:00:16.226787+00:00",
+    "decision_timestamp_utc": "2026-08-05T14:21:56.160710+00:00",
     "input_signals": {
         "days_since_last_training": 10,
         "new_labeled_rows": 100,

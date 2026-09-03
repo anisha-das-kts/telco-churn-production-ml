@@ -1,0 +1,11 @@
+{
+    "model_name": "Logistic Regression",
+    "model_version": "1.0.0",
+    "model_path": "1.0.0/model.joblib",
+    "model_sha256": "09749bf78d39d03022ce18c88fffa24ce121dd7b30540b39cdee43712ca56775",
+    "promoted_at_utc": "2026-09-03T19:03:43.518854+00:00",
+    "promotion_metadata": {
+        "decision": "INITIAL_CHAMPION",
+        "all_guardrails_passed": true
+    }
+}
