@@ -15,9 +15,9 @@
         ]
     ],
     "evaluated_rows": 1057,
-    "total_inference_seconds": 0.05038639999975203,
-    "average_inference_ms_per_row": 0.047669252601468336,
+    "total_inference_seconds": 0.022217499999896972,
+    "average_inference_ms_per_row": 0.021019394512674525,
     "model_name": "Logistic Regression",
     "dataset": "validation",
-    "training_seconds": 0.2631200999999237
+    "training_seconds": 0.10706430000027467
 }
