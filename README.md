@@ -985,7 +985,7 @@ Drift detection              ✅
 Retraining decision          ✅
 Automated tests              ✅ 48 passed
 Docker configuration         ✅
-Analysis notebook             ✅
+Analysis notebook            ✅
 ```
 
 ---
