@@ -1,296 +1,418 @@
-# Mini Production ML System: Telco Customer Churn Prediction
+# 🚀 Mini Production ML System: Telco Customer Churn Prediction
 
-## Project Overview
+An end-to-end production-style machine learning system for predicting telecom customer churn, with data validation, feature engineering, model training, model selection, model registry, online inference, benchmarking, monitoring, drift detection, and automated retraining decisions.
 
-This repository implements an end-to-end production-style machine
-learning system for predicting telecom customer churn.
+---
 
-The system includes:
+## 📌 Project Overview
 
-- Batch data ingestion and upsert logic
-- Schema and data-quality validation
-- Shared feature engineering for training and serving
-- Logistic Regression baseline
-- Random Forest candidate
-- Offline model evaluation and promotion guardrails
-- FastAPI online inference service
-- Latency and throughput benchmarking
-- Data-quality and feature-drift monitoring
-- Rule-based retraining triggers
-- Automated tests
-- Docker configuration
+This project implements a production-oriented machine learning lifecycle for predicting whether an active telecom customer is likely to churn.
 
-## Problem Definition
+The system is designed for a telecom customer-retention team that can use churn probability and risk level to prioritize customers for retention campaigns.
 
-The objective is to predict whether an active telecom customer is
-likely to churn.
+### Key capabilities
 
-The intended users are members of a telecom customer-retention team.
-They can use churn probability and risk level to prioritise customers
-for retention campaigns.
+* Batch data ingestion with idempotent processing
+* Schema and data-quality validation
+* Duplicate detection and upsert logic
+* Shared feature engineering for training and serving
+* Logistic Regression baseline
+* Random Forest candidate model
+* Offline model evaluation
+* Model promotion guardrails
+* Versioned model registry
+* Champion model resolution and integrity checks
+* FastAPI online inference service
+* Model-level inference benchmarking
+* API latency and throughput benchmarking
+* Data-quality monitoring
+* Numerical feature drift detection
+* Rule-based retraining triggers
+* Automated promotion and retraining tests
+* Docker configuration
+* Reproducible local execution
 
-| Item | Definition |
-|---|---|
-| ML task | Binary classification |
-| Positive class | Customer churns |
-| Intended users | Customer-retention team |
-| Input | Demographic, account, service and billing attributes |
-| Output | Prediction, churn probability and risk level |
-| Inference pattern | Online request-response API |
-| p95 latency target | Below 200 ms |
-| API error-rate target | Below 1% |
-| Primary offline metric | ROC AUC |
-| Important guardrail metric | Recall |
+---
 
-## Dataset
+# 🎯 Problem Definition
+
+The objective is to predict whether a telecom customer is likely to churn.
+
+| Item                       | Definition                                           |
+| -------------------------- | ---------------------------------------------------- |
+| ML task                    | Binary classification                                |
+| Positive class             | Customer churns                                      |
+| Intended users             | Customer-retention team                              |
+| Input                      | Demographic, account, service and billing attributes |
+| Output                     | Prediction, churn probability and risk level         |
+| Inference pattern          | Online request-response API                          |
+| Primary offline metric     | ROC AUC                                              |
+| Important guardrail metric | Recall                                               |
+| API p95 latency target     | < 200 ms                                             |
+| API error-rate target      | < 1%                                                 |
+
+---
+
+# 📊 Dataset
 
 The project uses the public IBM Telco Customer Churn dataset.
 
-- Rows: 7,043
-- Original columns: 21
-- Target: `Churn`
-- Non-churn observations: 5,174
-- Churn observations: 1,869
+* **Rows:** 7,043
+* **Original columns:** 21
+* **Target:** `Churn`
+* **Non-churn observations:** 5,174
+* **Churn observations:** 1,869
 
 Dataset source:
 
-[Telco Customer Churn on Kaggle](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
+https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 
-Each row represents one telecom customer. The data includes
-demographics, subscribed services, tenure, contract details, payment
-method, monthly charges, total charges and churn status.
+Each row represents one telecom customer and contains demographic, service, account, contract, payment and billing information.
 
-## Data Quality and Cleaning
+---
+
+# 🧹 Data Quality and Cleaning
 
 Initial validation identified:
 
-- No missing required columns
-- No unexpected columns
-- No exact duplicate rows
-- No duplicate customer IDs
-- No negative tenure or charge values
-- 11 blank `TotalCharges` values
+* No missing required columns
+* No unexpected columns
+* No exact duplicate rows
+* No duplicate customer IDs
+* No negative tenure values
+* No negative charge values
+* 11 blank `TotalCharges` values
 
-The blank `TotalCharges` records belong to customers with zero tenure.
-The shared preprocessing code replaces these values using:
+The 11 blank `TotalCharges` records correspond to zero-tenure customers.
+
+The preprocessing pipeline replaces them using:
 
 ```text
 estimated_total_charges = MonthlyCharges × tenure
 ```
 
-For zero-tenure customers, this produces a value of zero.
+For zero-tenure customers this produces zero.
 
-The original CSV is retained unchanged in `data/raw`.
+The original raw dataset is retained unchanged.
 
-## Engineered Features
+---
 
-The system creates 12 non-trivial features.
+# ⚙️ Feature Engineering
 
-| Feature | Description |
-|---|---|
-| `avg_monthly_spend` | Lifetime charges divided by safe tenure |
-| `service_count` | Number of active telecom services |
-| `security_support_count` | Number of security, protection and support products |
-| `streaming_service_count` | Number of streaming products |
-| `charges_per_service` | Monthly charge divided by active-service count |
-| `tenure_group` | Non-linear customer-lifecycle category |
-| `is_month_to_month` | Month-to-month contract indicator |
-| `has_auto_payment` | Automatic payment indicator |
-| `has_internet` | Internet-service indicator |
-| `support_gap` | Internet customer without technical support |
-| `high_charge_short_tenure` | High-cost customer with short tenure |
-| `contract_tenure_interaction` | Contract type combined with tenure group |
+The system creates 12 engineered features:
 
-The final model receives 31 input features: 14 numeric and 17
-categorical.
+| Feature                       | Description                                         |
+| ----------------------------- | --------------------------------------------------- |
+| `avg_monthly_spend`           | Lifetime charges divided by safe tenure             |
+| `service_count`               | Number of active telecom services                   |
+| `security_support_count`      | Number of security, protection and support products |
+| `streaming_service_count`     | Number of streaming products                        |
+| `charges_per_service`         | Monthly charge divided by active-service count      |
+| `tenure_group`                | Customer lifecycle category                         |
+| `is_month_to_month`           | Month-to-month contract indicator                   |
+| `has_auto_payment`            | Automatic payment indicator                         |
+| `has_internet`                | Internet-service indicator                          |
+| `support_gap`                 | Internet customer without technical support         |
+| `high_charge_short_tenure`    | High-cost customer with short tenure                |
+| `contract_tenure_interaction` | Contract type combined with tenure group            |
 
-## Offline and Online Features
+The final model receives 31 input features:
 
-Raw account attributes such as tenure, contract and monthly charges
-would be supplied online by a CRM system.
+* 14 numeric features
+* 17 categorical features
 
-Derived features such as `service_count`, `support_gap` and
-`charges_per_service` are calculated during inference.
+---
 
-In a larger production deployment, historical aggregations could be
-precomputed offline and retrieved from a feature store.
+# 🔄 Prevention of Training-Serving Skew
 
-## Prevention of Training-Serving Skew
-
-The same function is used in every execution path:
+The same feature-engineering implementation is reused across all execution paths.
 
 ```python
 from src.features.build_features import build_features
 ```
 
-It is called during:
+The shared feature function is used for:
 
-- Offline training
-- FastAPI prediction
-- Batch prediction
-- Monitoring
+* Offline training
+* FastAPI prediction
+* Batch prediction
+* Monitoring
 
-The complete categorical encoder, numeric imputer and classifier are
-also stored together as a Scikit-learn pipeline. This prevents
-differences in category handling, scaling, missing-value treatment and
-feature formulas.
+The preprocessing and classifier are also stored together as a Scikit-learn pipeline.
 
-## Batch Ingestion
+This ensures consistent:
 
-The ingestion pipeline reads CSV files from `data/incoming`.
+* Missing-value handling
+* Numeric scaling
+* Categorical encoding
+* Feature formulas
+* Category handling
 
-For every new file, it:
+between training and inference.
 
-1. Validates the required schema.
-2. Checks IDs, target values and numeric ranges.
-3. Separates valid and rejected records.
-4. Adds ingestion timestamp and source filename.
-5. Inserts new customers.
-6. Updates existing customers using upsert logic.
-7. Saves rejected rows for investigation.
-8. Records the file hash in an ingestion manifest.
+---
 
-The file hash makes ingestion idempotent. Rerunning the pipeline does
-not duplicate previously processed data.
+# 📥 Batch Data Ingestion
 
-Initial ingestion result:
+Incoming CSV files are placed in:
 
-| Measurement | Result |
-|---|---:|
-| Rows read | 7,043 |
-| Valid rows | 7,043 |
-| Rejected rows | 0 |
-| Inserted rows | 7,043 |
-| Final unique customers | 7,043 |
+```text
+data/incoming/
+```
 
-## Training Pipeline
+The ingestion pipeline:
 
-The repeatable training sequence is:
+1. Validates the required schema
+2. Checks customer IDs
+3. Validates target values
+4. Validates numerical ranges
+5. Separates valid and rejected records
+6. Adds ingestion metadata
+7. Inserts new customers
+8. Updates existing customers using upsert logic
+9. Saves rejected rows
+10. Records the source-file hash
+
+The file hash makes ingestion idempotent.
+
+Rerunning the same input does not duplicate previously ingested data.
+
+### Initial ingestion result
+
+| Measurement            | Result |
+| ---------------------- | -----: |
+| Rows read              |  7,043 |
+| Valid rows             |  7,043 |
+| Rejected rows          |      0 |
+| Final unique customers |  7,043 |
+
+---
+
+# 🧠 Training Pipeline
+
+The training workflow is:
 
 ```text
 Load training data
-→ Build shared features
-→ Stratified train/validation/test split
-→ Train baseline
-→ Train candidate
-→ Evaluate on validation data
-→ Apply promotion guardrail
-→ Refit selected model
-→ Evaluate once on untouched test data
-→ Save models and reports
+       ↓
+Build shared features
+       ↓
+Stratified train / validation / test split
+       ↓
+Train baseline
+       ↓
+Train candidate
+       ↓
+Evaluate validation performance
+       ↓
+Apply promotion guardrails
+       ↓
+Select production model
+       ↓
+Refit selected model
+       ↓
+Evaluate untouched test set
+       ↓
+Save model and reports
 ```
 
-Data split:
+### Dataset split
 
-| Split | Rows |
-|---|---:|
-| Training | 4,929 |
+| Split      |  Rows |
+| ---------- | ----: |
+| Training   | 4,929 |
 | Validation | 1,057 |
-| Test | 1,057 |
+| Test       | 1,057 |
 
-The random seed is fixed at `42`.
+Random seed:
 
-## Model Selection
+```text
+42
+```
 
-### Baseline
+---
 
-Logistic Regression with:
+# 🤖 Models
 
-- Numeric median imputation
-- Numeric standardisation
-- Categorical most-frequent imputation
-- One-hot encoding
-- Balanced class weights
+## Baseline — Logistic Regression
 
-### Candidate
+The baseline uses:
 
-Random Forest with:
+* Numeric median imputation
+* Numeric standardisation
+* Categorical most-frequent imputation
+* One-hot encoding
+* Balanced class weights
 
-- 300 trees
-- Maximum depth of 12
-- Minimum leaf size of 4
-- Balanced subsample weights
-- Fixed random seed
+## Candidate — Random Forest
 
-## Metric Selection
+The candidate uses:
 
-ROC AUC is the primary metric because it measures the model's ability
-to rank likely churners above non-churners across classification
-thresholds.
+* 300 trees
+* Maximum depth of 12
+* Minimum leaf size of 4
+* Balanced subsample weights
+* Fixed random seed
 
-Recall is an important guardrail because false negatives represent
-customers who churn without receiving a retention intervention.
+---
 
-Precision measures campaign efficiency. Low precision means retention
-offers may be sent to customers who would not have churned.
+# 📏 Metric Selection
 
-Accuracy alone is insufficient because the target distribution is
-imbalanced.
+## Primary metric: ROC AUC
 
-## Validation Results
+ROC AUC is used as the primary metric because the retention team needs to rank customers by churn likelihood across different classification thresholds.
 
-| Model | Accuracy | ROC AUC | Precision | Recall | F1 |
-|---|---:|---:|---:|---:|---:|
-| Logistic Regression | 0.7540 | 0.8341 | 0.5252 | 0.7794 | 0.6275 |
-| Random Forest | 0.7711 | 0.8319 | 0.5549 | 0.7011 | 0.6195 |
+## Guardrail metric: Recall
 
-The candidate had higher accuracy and precision but lower ROC AUC,
-recall and F1-score.
+Recall is important because a false negative represents a customer who churns without being identified for potential retention intervention.
 
-The promotion guardrail required:
+## Additional metrics
 
-- Candidate ROC AUC of at least 0.80
-- Candidate ROC AUC to at least match the baseline
-- Candidate recall of at least 0.70
+* Accuracy
+* Precision
+* F1-score
 
-Random Forest failed the baseline-comparison guardrail. Logistic
-Regression was retained because it performed better on the primary
-metric and recall while also being smaller, faster and more
-interpretable.
+Accuracy is not used alone because the churn classes are imbalanced.
 
-## Final Test Results
+---
 
-The selected Logistic Regression model was refitted on the combined
-training and validation data before final test evaluation.
+# 📊 Validation Results
 
-| Metric | Result |
-|---|---:|
-| Accuracy | 0.7474 |
-| ROC AUC | 0.8507 |
-| Precision | 0.5145 |
-| Recall | 0.8250 |
-| F1-score | 0.6337 |
-| True negatives | 559 |
-| False positives | 218 |
-| False negatives | 49 |
-| True positives | 231 |
+| Model               | Accuracy | ROC AUC | Precision | Recall |     F1 |
+| ------------------- | -------: | ------: | --------: | -----: | -----: |
+| Logistic Regression |   0.7540 |  0.8341 |    0.5252 | 0.7794 | 0.6275 |
+| Random Forest       |   0.7711 |  0.8319 |    0.5549 | 0.7011 | 0.6195 |
+
+Although Random Forest achieved higher accuracy and precision, it performed worse on the primary ROC AUC metric and recall.
+
+### Promotion guardrails
+
+A candidate must satisfy:
+
+* ROC AUC ≥ 0.80
+* ROC AUC ≥ baseline ROC AUC
+* Recall ≥ 0.70
+
+Random Forest failed the baseline-comparison guardrail.
+
+Therefore:
+
+```text
+Selected production model:
+Logistic Regression
+```
+
+Logistic Regression was retained because it performed better on the primary metric and recall while also providing a smaller, faster and more interpretable production model.
+
+---
+
+# 🏆 Final Test Results
+
+The selected Logistic Regression model was refitted using the combined training and validation data.
+
+The untouched test set was then used for final evaluation.
+
+| Metric          | Result |
+| --------------- | -----: |
+| Accuracy        | 0.7474 |
+| ROC AUC         | 0.8507 |
+| Precision       | 0.5145 |
+| Recall          | 0.8250 |
+| F1-score        | 0.6337 |
+| True negatives  |    559 |
+| False positives |    218 |
+| False negatives |     49 |
+| True positives  |    231 |
 
 The test set was used only after model selection.
 
-## Serving Pattern
+---
 
-The model is exposed through FastAPI using an online request-response
-pattern.
+# 🗂️ Model Registry
 
-Online inference is appropriate because a retention agent or CRM
-workflow may require a score while viewing a customer record. The
-payload is small, and the selected model supports low-latency CPU
-inference.
+The project contains a versioned model registry with:
 
-For large campaign lists, the same model could also be used through a
-batch-scoring script.
+* Model versions
+* Model metadata
+* Evaluation metrics
+* Champion resolution
+* Promotion controls
+* Champion integrity verification
 
-## API Endpoints
+A newly trained candidate is not automatically deployed.
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/` | Service navigation |
-| GET | `/health` | Service and model health |
-| GET | `/model-info` | Deployed model metadata |
-| POST | `/predict` | Customer churn prediction |
-| GET | `/docs` | Interactive Swagger documentation |
+Instead:
 
-Example response:
+```text
+Candidate Model
+      ↓
+Evaluation
+      ↓
+Promotion Guardrails
+      ↓
+Model Registry
+      ↓
+Champion Model
+```
+
+---
+
+# 🚦 Model Promotion Guardrails
+
+Promotion checks include:
+
+* Minimum ROC AUC
+* Candidate vs. champion ROC AUC
+* Minimum recall
+* Inference latency
+* API error rate
+* Required evaluation metrics
+
+A candidate that fails any required production criterion is rejected.
+
+This prevents an apparently improved model from being deployed if it violates operational or business constraints.
+
+---
+
+# 🌐 FastAPI Serving
+
+The production model is exposed through FastAPI using an online request-response pattern.
+
+Online inference is appropriate for a retention workflow where a churn score may be required while viewing an individual customer record.
+
+## Start the API
+
+```powershell
+uvicorn src.serving.app:app --reload
+```
+
+The API runs at:
+
+```text
+http://127.0.0.1:8000
+```
+
+## Swagger documentation
+
+Open:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# 🔌 API Endpoints
+
+| Method | Endpoint      | Purpose                           |
+| ------ | ------------- | --------------------------------- |
+| GET    | `/`           | Service navigation                |
+| GET    | `/health`     | Service and model health          |
+| GET    | `/model-info` | Deployed model metadata           |
+| POST   | `/predict`    | Customer churn prediction         |
+| GET    | `/docs`       | Interactive Swagger documentation |
+
+### Example response
 
 ```json
 {
@@ -305,307 +427,542 @@ Example response:
 }
 ```
 
-Risk bands:
+### Risk bands
 
-| Probability | Risk |
-|---:|---|
-| Below 0.40 | Low |
-| 0.40–0.69 | Medium |
-| 0.70 or above | High |
+| Probability | Risk   |
+| ----------: | ------ |
+|      < 0.40 | Low    |
+|   0.40–0.69 | Medium |
+|      ≥ 0.70 | High   |
 
-## API Performance
+---
 
-The local API was measured using five warm-up calls followed by 100
-sequential requests.
+# ⚡ Model Inference Benchmark
 
-| Measurement | Result |
-|---|---:|
-| Measured requests | 100 |
-| Successful requests | 100 |
-| Failed requests | 0 |
-| Error rate | 0.00% |
-| Average latency | 45.40 ms |
-| Median latency | 44.68 ms |
-| p95 latency | 55.55 ms |
-| Maximum latency | 87.34 ms |
-| Throughput | 22.00 requests/second |
-| p95 target | 200 ms |
-| Target met | Yes |
+The project includes a reusable model-level benchmarking utility:
 
-These measurements represent a local demonstration workload and are
-not a substitute for distributed production load testing.
+```text
+src/training/benchmark.py
+```
 
-## Monitoring
+It measures:
 
-### Infrastructure and API metrics
+* Warm-up requests
+* Measured requests
+* Successful requests
+* Failed requests
+* Error rate
+* Average inference latency
+* Median latency
+* p95 latency
+* Minimum latency
+* Maximum latency
+* Throughput
 
-- Request count
-- Average and p95 latency
-- Throughput
-- HTTP 4xx and 5xx counts
-- Error rate
-- Service health
+The benchmark also validates invalid inputs and records partial inference failures.
 
-Suggested alerts:
+---
 
-- p95 latency above 200 ms for 10 minutes
-- Error rate above 1% for 5 minutes
-- Two consecutive failed health checks
+# 📈 API Performance Benchmark
 
-### Data and feature metrics
+The API can be benchmarked using:
 
-- Incoming row count
-- Missing-value rates
-- Missing required columns
-- Negative or out-of-range values
-- Unknown categories
-- Numerical feature mean and standard deviation
-- Normalised numerical mean shift
+```powershell
+python scripts/benchmark_api.py --requests 100 --warmup 5
+```
 
-### Model and business metrics
+The benchmark performs:
 
-- Prediction distribution
-- High-risk customer rate
-- ROC AUC on delayed labelled feedback
-- Recall on recent labels
-- Retention-offer acceptance rate
-- Churn rate among contacted customers
+* 5 warm-up requests
+* 100 measured requests
+* Health verification before measurement
+* Latency measurement
+* Success/failure measurement
+* Error-rate calculation
+* Throughput calculation
 
-## Controlled Monitoring Demonstration
+Results are saved to:
 
-Because the public dataset does not provide a genuinely newer
-production batch, the repository includes a clearly labelled synthetic
-monitoring demonstration.
+```text
+artifacts/eval/api_benchmark.json
+```
 
-The controlled batch contains:
+## Latest verified benchmark result
 
-- 500 sampled customers
-- A 50% increase in `MonthlyCharges`
-- An 8% missing rate in `MonthlyCharges`
+The following results were obtained from the latest successful local API benchmark:
 
-The monitoring system detected:
+| Metric              |             Result |
+| ------------------- | -----------------: |
+| Requests measured   |                100 |
+| Successful requests |                100 |
+| Failed requests     |                  0 |
+| Error rate          |              0.00% |
+| Average latency     |           28.49 ms |
+| Median latency      |           28.49 ms |
+| P95 latency         |           31.41 ms |
+| Minimum latency     |           24.37 ms |
+| Maximum latency     |           76.22 ms |
+| Throughput          | 35.06 requests/sec |
+| P95 latency target  |           < 200 ms |
+| Target status       |            **Met** |
 
-- Missing-rate threshold violation
-- `MonthlyCharges` z-shift of 1.104
-- `charges_per_service` z-shift of 1.026
+### Benchmark interpretation
 
-The synthetic batch is not presented as real recent production data.
+The API successfully completed all 100 measured requests with zero failures.
 
-## Retraining Strategy
+The measured P95 latency of **31.41 ms** is substantially below the configured **200 ms** target.
 
-Retraining is considered when any of these signals occurs:
+The measured throughput was **35.06 requests/second** in the local sequential benchmark.
 
-1. At least 30 days have elapsed and at least 500 new labelled rows are
-   available.
-2. Recent ROC AUC drops by more than 0.05 from the production reference.
-3. Numerical drift exceeds the configured threshold.
+The benchmark represents a local sequential demonstration workload and is not a substitute for distributed production load testing.
 
-A monitoring demonstration triggered retraining because the maximum
-z-shift was 1.104, exceeding the 0.50 threshold.
+---
 
-A newly trained model is not deployed automatically. It must pass the
-same offline evaluation and promotion guardrails.
+# 🔍 Monitoring
 
-Critical schema or data-quality failures block retraining because
-training on corrupted data could produce an invalid model.
+The monitoring system covers three major areas.
 
-## Incident Scenario
+## Infrastructure / API metrics
 
-Suppose the billing system changes `MonthlyCharges` to
-`monthly_charge` without notifying the ML team.
+* Request count
+* Average latency
+* p95 latency
+* Throughput
+* HTTP 4xx/5xx counts
+* Error rate
+* Service health
 
-The ingestion schema check detects that the required column is
-missing and rejects the batch instead of silently replacing the feature
-with null values. A critical alert is sent to the data engineering and
-ML teams.
+## Data and feature metrics
 
-The API continues using the last valid production model. The team
-investigates the upstream schema contract, adds an approved mapping,
-reprocesses the rejected batch and verifies data quality. Retraining is
-allowed only after the corrected data passes quality and drift checks.
+* Incoming row count
+* Missing-value rates
+* Missing required columns
+* Invalid numerical values
+* Unknown categories
+* Numerical means and standard deviations
+* Normalised numerical mean shift
 
-## Project Structure
+## Model and business metrics
+
+* Prediction distribution
+* High-risk customer rate
+* ROC AUC on delayed labels
+* Recall on recent labels
+* Retention-offer acceptance rate
+* Churn rate among contacted customers
+
+---
+
+# 📡 Drift Detection
+
+The project performs numerical feature monitoring against a reference dataset.
+
+The controlled monitoring demonstration intentionally introduces:
+
+* 500 recent rows
+* 50% increase in `MonthlyCharges`
+* 8% missing `MonthlyCharges`
+
+The monitoring system detects:
+
+* Missing-rate threshold violation
+* `MonthlyCharges` z-shift of 1.104
+* `charges_per_service` z-shift of 1.026
+
+Configured numerical drift threshold:
+
+```text
+0.50
+```
+
+The monitoring report is saved to:
+
+```text
+artifacts/monitoring/monitoring_report.json
+```
+
+> **Note:** The monitoring batch is synthetic demonstration data and is not represented as genuine production data.
+
+---
+
+# 🔁 Automated Retraining Strategy
+
+Retraining is considered when any of the following conditions occurs.
+
+## 1. Scheduled retraining
+
+```text
+At least 30 days elapsed
+AND
+At least 500 new labelled rows
+```
+
+## 2. Performance degradation
+
+```text
+Recent ROC AUC decreases by more than 0.05
+```
+
+## 3. Data drift
+
+```text
+Numerical drift exceeds configured threshold
+```
+
+The demonstrated monitoring batch triggered retraining because the maximum numerical z-shift exceeded the configured threshold.
+
+## Retraining safety
+
+A newly trained model is **not automatically deployed**.
+
+The candidate must pass the same:
+
+* Offline evaluation
+* Performance checks
+* Recall checks
+* Latency checks
+* Error-rate checks
+* Model promotion guardrails
+
+before becoming the champion.
+
+Critical data-quality failures block retraining.
+
+---
+
+# 🚨 Incident Scenario
+
+Suppose an upstream billing system changes:
+
+```text
+MonthlyCharges
+```
+
+to:
+
+```text
+monthly_charge
+```
+
+without notifying the ML system.
+
+The ingestion schema check detects the missing required column and rejects the batch rather than silently producing invalid features.
+
+The production system continues using the last valid champion model while the upstream schema issue is investigated.
+
+After the schema contract is corrected:
+
+```text
+Correct data
+     ↓
+Data quality validation
+     ↓
+Drift checks
+     ↓
+Retraining
+     ↓
+Evaluation
+     ↓
+Promotion guardrails
+     ↓
+Deployment
+```
+
+---
+
+# 🧪 Automated Testing
+
+The project currently contains **48 automated tests** covering:
+
+* API endpoints
+* Prediction validation
+* Feature engineering
+* Data ingestion
+* Data-quality handling
+* Model benchmarking
+* Model registry
+* Model promotion
+* Retraining triggers
+* Champion model serving
+
+Run the complete test suite:
+
+```powershell
+python -m pytest -q
+```
+
+Expected result:
+
+```text
+48 passed
+```
+
+---
+
+# 📁 Project Structure
 
 ```text
 telco-churn-production-ml/
+│
 ├── configs/
+│
 ├── data/
 │   ├── raw/
 │   ├── incoming/
 │   ├── processed/
 │   └── monitoring/
+│
 ├── src/
 │   ├── data/
 │   ├── features/
 │   ├── training/
 │   ├── serving/
-│   └── monitoring/
+│   ├── monitoring/
+│   └── registry/
+│
 ├── scripts/
+│   ├── benchmark_api.py
+│   └── create_monitoring_batch.py
+│
 ├── models/
+│
 ├── artifacts/
+│   ├── eval/
+│   ├── logs/
+│   └── monitoring/
+│
 ├── tests/
+│
 ├── docs/
-├── demo/
+│
 ├── Dockerfile
+├── .dockerignore
+├── .gitignore
+├── pytest.ini
 ├── requirements.txt
 ├── requirements-lock.txt
 └── README.md
 ```
 
-## Local Setup
+---
 
-The project was developed using Python 3.12.10.
+# 🛠️ Local Setup
 
-Create and activate a virtual environment:
+The project was developed using:
+
+```text
+Python 3.12.10
+```
+
+## Create virtual environment
 
 ```powershell
 py -3.12 -m venv .venv
+```
+
+## Activate
+
+```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+## Install dependencies
 
 ```powershell
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-For exact dependency versions:
+For exact locked dependency versions:
 
 ```powershell
 python -m pip install -r requirements-lock.txt
 ```
 
-## Running the System
+---
 
-Validate raw data:
+# ▶️ Running the Complete System
+
+## 1. Validate raw data
 
 ```powershell
 python -m src.data.validate
 ```
 
-Build feature preview:
+## 2. Build feature preview
 
 ```powershell
 python -m src.features.build_features
 ```
 
-Run ingestion:
+## 3. Run ingestion
 
 ```powershell
 python -m src.data.ingest
 ```
 
-Train and evaluate models:
+## 4. Train and evaluate models
 
 ```powershell
 python -m src.training.train
 ```
 
-Start the API:
-
-```powershell
-uvicorn src.serving.app:app --reload
-```
-
-Open Swagger:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-Benchmark the API:
-
-```powershell
-python scripts/benchmark_api.py --requests 100 --warmup 5
-```
-
-Create the controlled monitoring batch:
-
-```powershell
-python scripts/create_monitoring_batch.py
-```
-
-Run monitoring:
-
-```powershell
-python -m src.monitoring.drift
-```
-
-Evaluate retraining:
-
-```powershell
-python -m src.monitoring.retraining_trigger --days 10 --new-labeled-rows 100 --recent-auc 0.84
-```
-
-Run all tests:
+## 5. Run automated tests
 
 ```powershell
 python -m pytest -q
 ```
 
-Current result:
+## 6. Start FastAPI
 
-```text
-29 passed
+```powershell
+uvicorn src.serving.app:app --reload
 ```
 
-## Docker
+## 7. Open Swagger
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+## 8. Benchmark the API
+
+In another terminal:
+
+```powershell
+python scripts/benchmark_api.py --requests 100 --warmup 5
+```
+
+## 9. Create controlled monitoring batch
+
+```powershell
+python scripts/create_monitoring_batch.py
+```
+
+## 10. Run monitoring
+
+```powershell
+python -m src.monitoring.drift
+```
+
+## 11. Evaluate retraining
+
+```powershell
+python -m src.monitoring.retraining_trigger --days 10 --new-labeled-rows 100 --recent-auc 0.84
+```
+
+---
+
+# 🐳 Docker
 
 A Dockerfile is included for optional container deployment.
 
+Build:
+
 ```powershell
 docker build -t telco-churn-api:1.0.0 .
+```
+
+Run:
+
+```powershell
 docker run -p 8000:8000 telco-churn-api:1.0.0
 ```
 
-Docker configuration was prepared but not executed in the original
-local environment because Docker Desktop was unavailable.
+Docker execution is optional for the local demonstration.
 
-## Reproducibility
+---
 
-- Python version documented
-- Dependency ranges saved
-- Exact dependency lock file saved
-- Random seed fixed at 42
-- Stratified splits
-- Shared feature module
-- Idempotent ingestion
-- Saved model version
-- JSON evaluation reports
-- JSON monitoring reports
-- Automated tests
+# ♻️ Reproducibility
 
-## Limitations
+The project includes:
 
-- The dataset is fictional and may not represent current telecom users.
-- Labels are not time-stamped, so a realistic temporal split is not
-  possible.
-- Monitoring uses a controlled synthetic recent batch.
-- Current drift detection is univariate.
-- The model uses a fixed 0.50 classification threshold.
-- Prediction logs use local JSONL storage.
-- The API benchmark is local and sequential.
-- Fairness across demographic groups has not been fully assessed.
-- Delayed production labels are not available in this demonstration.
+* Python version documentation
+* Dependency requirements
+* Locked dependency versions
+* Fixed random seed (`42`)
+* Stratified dataset splitting
+* Shared feature-engineering implementation
+* Idempotent ingestion
+* Versioned model artifacts
+* JSON evaluation reports
+* JSON monitoring reports
+* Automated tests
 
-## Future Work
+---
 
-- MLflow model registry
-- Feast feature store
-- PostgreSQL or object-storage training tables
-- Prometheus and Grafana dashboards
-- Evidently drift monitoring
-- Airflow orchestration
-- CI/CD through GitHub Actions
-- SHAP explanations
-- Probability calibration
-- Business-cost-based threshold optimisation
-- Champion-challenger deployment
-- Canary rollout and automated rollback
-- Cloud container deployment
-- Fairness monitoring
+# ⚠️ Limitations
 
-## Repository
+This is a mini production-ML demonstration rather than a full enterprise deployment.
 
-GitHub repository: [telco-churn-production-ml](https://github.com/anisha-das-kts/telco-churn-production-ml)
+Current limitations include:
+
+* The dataset is a public historical dataset and may not represent current telecom users.
+* Labels are not time-stamped, so a realistic temporal split is not available.
+* Monitoring uses controlled synthetic recent data.
+* Drift detection is currently univariate.
+* The classification threshold is fixed at 0.50.
+* Prediction logs use local JSONL storage.
+* API benchmarking is local and sequential.
+* Fairness across demographic groups has not been fully assessed.
+* Delayed real-world production labels are unavailable.
+
+---
+
+# 🔮 Future Improvements
+
+Potential production extensions include:
+
+* MLflow-based model lifecycle management
+* Feast feature store
+* PostgreSQL or object-storage training tables
+* Prometheus and Grafana monitoring
+* Evidently-based monitoring
+* Airflow orchestration
+* GitHub Actions CI/CD
+* SHAP explanations
+* Probability calibration
+* Business-cost-based threshold optimisation
+* Champion-challenger deployment
+* Canary rollout and automated rollback
+* Cloud container deployment
+* Fairness monitoring
+
+These are intentionally outside the scope of the current mini production-ML implementation.
+
+---
+
+# ✅ Current Validation Status
+
+The current implementation has been validated locally with:
+
+```text
+Data validation              ✅
+Feature engineering          ✅
+Data ingestion               ✅
+Model training               ✅
+Model selection              ✅
+Final evaluation             ✅
+Model registry               ✅
+Promotion guardrails         ✅
+FastAPI serving              ✅
+Health endpoint              ✅
+Model benchmark              ✅
+API benchmark                ✅ 100/100 successful
+API P95 latency              ✅ 31.41 ms
+API error rate               ✅ 0.00%
+API throughput               ✅ 35.06 requests/sec
+Monitoring                   ✅
+Drift detection              ✅
+Retraining decision          ✅
+Automated tests              ✅ 48 passed
+Docker configuration         ✅
+```
+
+---
+
+# 👩‍💻 Repository
+
+GitHub:
+
+https://github.com/anisha-das-kts/telco-churn-production-ml

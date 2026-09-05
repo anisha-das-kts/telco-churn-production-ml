@@ -15,9 +15,9 @@
         ]
     ],
     "evaluated_rows": 1057,
-    "total_inference_seconds": 0.18670449999990524,
-    "average_inference_ms_per_row": 0.1766362346262112,
+    "total_inference_seconds": 0.1800295000011829,
+    "average_inference_ms_per_row": 0.17032119205409924,
     "model_name": "Random Forest",
     "dataset": "validation",
-    "training_seconds": 1.209353799999917
+    "training_seconds": 1.3215658000008261
 }

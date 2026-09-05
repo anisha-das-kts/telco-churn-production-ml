@@ -1,28 +1,28 @@
 {
-    "benchmark_timestamp_utc": "2026-08-05T14:20:50.762530+00:00",
+    "benchmark_timestamp_utc": "2026-09-05T06:14:52.629452+00:00",
     "api_url": "http://127.0.0.1:8000/predict",
     "warmup_requests": 5,
     "measured_requests": 100,
     "successful_requests": 100,
     "failed_requests": 0,
     "error_rate_percent": 0.0,
-    "total_duration_seconds": 3.0593740999997863,
-    "average_latency_ms": 30.56084199995894,
-    "median_latency_ms": 27.89224999992257,
-    "p95_latency_ms": 47.296370000231036,
-    "minimum_latency_ms": 25.251699999898847,
-    "maximum_latency_ms": 84.85620000010385,
-    "throughput_requests_per_second": 32.68642432450709,
+    "total_duration_seconds": 2.8518731000003754,
+    "average_latency_ms": 28.488004000100773,
+    "median_latency_ms": 28.49450000030629,
+    "p95_latency_ms": 31.41275000061796,
+    "minimum_latency_ms": 24.368200000026263,
+    "maximum_latency_ms": 76.22319999973115,
+    "throughput_requests_per_second": 35.06467381034129,
     "latency_target_ms": 200.0,
     "meets_p95_latency_target": true,
     "sample_response": {
-        "request_id": "b2b124ff-9df5-4952-8898-8e16edf07019",
+        "request_id": "cdaa9466-47a7-4da7-ba55-1ffa854978da",
         "prediction": 1,
         "churn_label": "Likely to churn",
         "churn_probability": 0.93983,
         "risk_level": "high",
         "model_name": "Logistic Regression",
         "model_version": "1.0.0",
-        "latency_ms": 22.763
+        "latency_ms": 24.931
     }
 }
