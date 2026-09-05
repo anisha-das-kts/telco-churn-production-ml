@@ -23,11 +23,11 @@
             ]
         ],
         "evaluated_rows": 1057,
-        "total_inference_seconds": 0.022217499999896972,
-        "average_inference_ms_per_row": 0.021019394512674525,
+        "total_inference_seconds": 0.024351000000024214,
+        "average_inference_ms_per_row": 0.023037842951773146,
         "model_name": "Logistic Regression",
         "dataset": "validation",
-        "training_seconds": 0.10706430000027467
+        "training_seconds": 0.123340800000733
     },
     "candidate_validation_metrics": {
         "accuracy": 0.771050141911069,
@@ -46,11 +46,11 @@
             ]
         ],
         "evaluated_rows": 1057,
-        "total_inference_seconds": 0.18670449999990524,
-        "average_inference_ms_per_row": 0.1766362346262112,
+        "total_inference_seconds": 0.1800295000011829,
+        "average_inference_ms_per_row": 0.17032119205409924,
         "model_name": "Random Forest",
         "dataset": "validation",
-        "training_seconds": 1.209353799999917
+        "training_seconds": 1.3215658000008261
     },
     "promotion_checks": {
         "minimum_auc_passed": true,
@@ -76,10 +76,10 @@
             ]
         ],
         "evaluated_rows": 1057,
-        "total_inference_seconds": 0.02420780000011291,
-        "average_inference_ms_per_row": 0.02290236518459121,
+        "total_inference_seconds": 0.02235800000016752,
+        "average_inference_ms_per_row": 0.02115231788095319,
         "model_name": "Logistic Regression",
         "dataset": "test",
-        "training_seconds": 0.12960979999934352
+        "training_seconds": 0.13761900000099558
     }
 }
