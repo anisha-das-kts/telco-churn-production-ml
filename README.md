@@ -1003,4 +1003,3 @@ https://github.com/anisha-das-kts/telco-churn-production-ml
 **Anisha Das**
 
 Master's Student — Data Science & AI
-BITS Pilani Digital
