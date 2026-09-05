@@ -416,14 +416,14 @@ http://127.0.0.1:8000/docs
 
 ```json
 {
-  "request_id": "example-request-id",
+  "request_id": "aba6c0f2-28f3-4ce6-afcc-466a085e1087",
   "prediction": 1,
   "churn_label": "Likely to churn",
   "churn_probability": 0.93983,
   "risk_level": "high",
   "model_name": "Logistic Regression",
   "model_version": "1.0.0",
-  "latency_ms": 34.788
+  "latency_ms": 42.408
 }
 ```
 
