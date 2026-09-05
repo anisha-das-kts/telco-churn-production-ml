@@ -1,6 +1,6 @@
 # 🚀 Mini Production ML System: Telco Customer Churn Prediction
 
-An end-to-end production-style machine learning system for predicting telecom customer churn, with data validation, feature engineering, model training, model selection, model registry, online inference, benchmarking, monitoring, drift detection, and automated retraining decisions.
+An end-to-end production-style machine learning system for predicting telecom customer churn, with data validation, feature engineering, model training, model selection, model registry, online inference, benchmarking, monitoring, drift detection, automated retraining decisions, and reproducible testing.
 
 ---
 
@@ -10,7 +10,7 @@ This project implements a production-oriented machine learning lifecycle for pre
 
 The system is designed for a telecom customer-retention team that can use churn probability and risk level to prioritize customers for retention campaigns.
 
-### Key capabilities
+### Key Capabilities
 
 * Batch data ingestion with idempotent processing
 * Schema and data-quality validation
@@ -31,6 +31,7 @@ The system is designed for a telecom customer-retention team that can use churn 
 * Automated promotion and retraining tests
 * Docker configuration
 * Reproducible local execution
+* Exploratory analysis notebook
 
 ---
 
@@ -68,6 +69,31 @@ Dataset source:
 https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 
 Each row represents one telecom customer and contains demographic, service, account, contract, payment and billing information.
+
+---
+
+# 📓 Exploratory Analysis Notebook
+
+The project includes an analysis notebook:
+
+```text
+notebooks/telco_churn_analysis.ipynb
+```
+
+The notebook provides a reproducible analysis of the Telco Customer Churn dataset and can be used to inspect:
+
+* Dataset structure
+* Feature distributions
+* Missing values
+* Target-class distribution
+* Customer tenure patterns
+* Contract characteristics
+* Billing and service attributes
+* Churn-related patterns
+* Exploratory visualisations
+* Feature relationships relevant to modelling
+
+The notebook complements the production pipeline by providing an analytical view of the underlying dataset before and alongside model development.
 
 ---
 
@@ -125,7 +151,7 @@ The final model receives 31 input features:
 
 # 🔄 Prevention of Training-Serving Skew
 
-The same feature-engineering implementation is reused across all execution paths.
+The same feature-engineering implementation is reused across all execution paths:
 
 ```python
 from src.features.build_features import build_features
@@ -177,7 +203,7 @@ The file hash makes ingestion idempotent.
 
 Rerunning the same input does not duplicate previously ingested data.
 
-### Initial ingestion result
+### Initial Ingestion Result
 
 | Measurement            | Result |
 | ---------------------- | -----: |
@@ -216,7 +242,7 @@ Evaluate untouched test set
 Save model and reports
 ```
 
-### Dataset split
+### Dataset Split
 
 | Split      |  Rows |
 | ---------- | ----: |
@@ -258,15 +284,15 @@ The candidate uses:
 
 # 📏 Metric Selection
 
-## Primary metric: ROC AUC
+## Primary Metric: ROC AUC
 
 ROC AUC is used as the primary metric because the retention team needs to rank customers by churn likelihood across different classification thresholds.
 
-## Guardrail metric: Recall
+## Guardrail Metric: Recall
 
 Recall is important because a false negative represents a customer who churns without being identified for potential retention intervention.
 
-## Additional metrics
+## Additional Metrics
 
 * Accuracy
 * Precision
@@ -285,7 +311,7 @@ Accuracy is not used alone because the churn classes are imbalanced.
 
 Although Random Forest achieved higher accuracy and precision, it performed worse on the primary ROC AUC metric and recall.
 
-### Promotion guardrails
+### Promotion Guardrails
 
 A candidate must satisfy:
 
@@ -392,7 +418,7 @@ The API runs at:
 http://127.0.0.1:8000
 ```
 
-## Swagger documentation
+## Swagger Documentation
 
 Open:
 
@@ -412,7 +438,7 @@ http://127.0.0.1:8000/docs
 | POST   | `/predict`    | Customer churn prediction         |
 | GET    | `/docs`       | Interactive Swagger documentation |
 
-### Example response
+### Example Response
 
 ```json
 {
@@ -427,7 +453,7 @@ http://127.0.0.1:8000/docs
 }
 ```
 
-### Risk bands
+### Risk Bands
 
 | Probability | Risk   |
 | ----------: | ------ |
@@ -487,9 +513,7 @@ Results are saved to:
 artifacts/eval/api_benchmark.json
 ```
 
-## Latest verified benchmark result
-
-The following results were obtained from the latest successful local API benchmark:
+## Latest Verified Benchmark Result
 
 | Metric              |             Result |
 | ------------------- | -----------------: |
@@ -506,7 +530,7 @@ The following results were obtained from the latest successful local API benchma
 | P95 latency target  |           < 200 ms |
 | Target status       |            **Met** |
 
-### Benchmark interpretation
+### Benchmark Interpretation
 
 The API successfully completed all 100 measured requests with zero failures.
 
@@ -522,7 +546,7 @@ The benchmark represents a local sequential demonstration workload and is not a 
 
 The monitoring system covers three major areas.
 
-## Infrastructure / API metrics
+## Infrastructure / API Metrics
 
 * Request count
 * Average latency
@@ -532,7 +556,7 @@ The monitoring system covers three major areas.
 * Error rate
 * Service health
 
-## Data and feature metrics
+## Data and Feature Metrics
 
 * Incoming row count
 * Missing-value rates
@@ -542,7 +566,7 @@ The monitoring system covers three major areas.
 * Numerical means and standard deviations
 * Normalised numerical mean shift
 
-## Model and business metrics
+## Model and Business Metrics
 
 * Prediction distribution
 * High-risk customer rate
@@ -589,7 +613,7 @@ artifacts/monitoring/monitoring_report.json
 
 Retraining is considered when any of the following conditions occurs.
 
-## 1. Scheduled retraining
+## 1. Scheduled Retraining
 
 ```text
 At least 30 days elapsed
@@ -597,13 +621,13 @@ AND
 At least 500 new labelled rows
 ```
 
-## 2. Performance degradation
+## 2. Performance Degradation
 
 ```text
 Recent ROC AUC decreases by more than 0.05
 ```
 
-## 3. Data drift
+## 3. Data Drift
 
 ```text
 Numerical drift exceeds configured threshold
@@ -611,7 +635,7 @@ Numerical drift exceeds configured threshold
 
 The demonstrated monitoring batch triggered retraining because the maximum numerical z-shift exceeded the configured threshold.
 
-## Retraining safety
+### Retraining Safety
 
 A newly trained model is **not automatically deployed**.
 
@@ -712,6 +736,9 @@ telco-churn-production-ml/
 │   ├── processed/
 │   └── monitoring/
 │
+├── notebooks/
+│   └── telco_churn_analysis.ipynb
+│
 ├── src/
 │   ├── data/
 │   ├── features/
@@ -722,7 +749,7 @@ telco-churn-production-ml/
 │
 ├── scripts/
 │   ├── benchmark_api.py
-│   └── create_monitoring_batch.py
+│   ├── create_monitoring_batch.py
 │   └── initialize_model_registry.py
 │
 ├── models/
@@ -755,7 +782,7 @@ The project was developed using:
 Python 3.12.10
 ```
 
-## Create virtual environment
+## Create Virtual Environment
 
 ```powershell
 py -3.12 -m venv .venv
@@ -767,7 +794,7 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-## Install dependencies
+## Install Dependencies
 
 ```powershell
 python -m pip install --upgrade pip
@@ -784,31 +811,31 @@ python -m pip install -r requirements-lock.txt
 
 # ▶️ Running the Complete System
 
-## 1. Validate raw data
+## 1. Validate Raw Data
 
 ```powershell
 python -m src.data.validate
 ```
 
-## 2. Build feature preview
+## 2. Build Feature Preview
 
 ```powershell
 python -m src.features.build_features
 ```
 
-## 3. Run ingestion
+## 3. Run Ingestion
 
 ```powershell
 python -m src.data.ingest
 ```
 
-## 4. Train and evaluate models
+## 4. Train and Evaluate Models
 
 ```powershell
 python -m src.training.train
 ```
 
-## 5. Run automated tests
+## 5. Run Automated Tests
 
 ```powershell
 python -m pytest -q
@@ -834,19 +861,19 @@ In another terminal:
 python scripts/benchmark_api.py --requests 100 --warmup 5
 ```
 
-## 9. Create controlled monitoring batch
+## 9. Create Controlled Monitoring Batch
 
 ```powershell
 python scripts/create_monitoring_batch.py
 ```
 
-## 10. Run monitoring
+## 10. Run Monitoring
 
 ```powershell
 python -m src.monitoring.drift
 ```
 
-## 11. Evaluate retraining
+## 11. Evaluate Retraining
 
 ```powershell
 python -m src.monitoring.retraining_trigger --days 10 --new-labeled-rows 100 --recent-auc 0.84
@@ -958,12 +985,22 @@ Drift detection              ✅
 Retraining decision          ✅
 Automated tests              ✅ 48 passed
 Docker configuration         ✅
+Analysis notebook             ✅
 ```
 
 ---
 
 # 👩‍💻 Repository
 
-GitHub:
+GitHub repository:
 
 https://github.com/anisha-das-kts/telco-churn-production-ml
+
+---
+
+## 👤 Author
+
+**Anisha Das**
+
+Master's Student — Data Science & AI
+BITS Pilani Digital
