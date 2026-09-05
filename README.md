@@ -723,6 +723,7 @@ telco-churn-production-ml/
 ├── scripts/
 │   ├── benchmark_api.py
 │   └── create_monitoring_batch.py
+│   └── initialize_model_registry.py
 │
 ├── models/
 │
